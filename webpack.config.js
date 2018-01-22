@@ -1,6 +1,8 @@
 const path = require('path')
 const webpack = require('webpack')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const PurifyCss = require('purifycss-webpack')
+const glob = require('glob-all')
 
 module.exports = {
   entry: {
@@ -35,9 +37,9 @@ module.exports = {
               loader: 'css-loader',
               options: {
                 // 压缩
-                minimize: true,
-                module: true,
-                localIdentName: '[path][name]_[local]_[hash:base64:5]'
+                // minimize: true,
+                // module: true,
+                // localIdentName: '[path][name]_[local]_[hash:base64:5]'
               },
             },
             {
@@ -57,8 +59,23 @@ module.exports = {
     // 压缩css 
     new ExtractTextPlugin({
       filename: '[name].min.css',
+      // 异步模块不提取
       allChunks: false
-    })
+    }),
+    // css tree shaking
+    new PurifyCss({
+      paths: glob.sync([
+        path.resolve(__dirname, './*.html'),
+        path.resolve(__dirname, './*.js')
+      ]),
+    }),
+    // js tree shaking
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      sourceMap: true
+    }),
   //   new webpack.optimize.CommonsChunkPlugin({
   //     name: 'common',
   //     minChunks: 2,
